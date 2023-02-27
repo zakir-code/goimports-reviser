@@ -267,6 +267,26 @@ func main() {
 		}
 		return
 	}
+	originPaths := flag.Args()
+	if len(originPaths) > 1 {
+		for i := 0; i < len(originPaths); i++ {
+			path := originPaths[i]
+			content, hasChange, err := reviser.NewSourceFile(originProjectName, path).Fix(options...)
+			if err != nil {
+				log.Fatalf("%+v", errors.WithStack(err))
+			}
+			if hasChange {
+				if *setExitStatus {
+					fmt.Println(path)
+					os.Exit(1)
+				}
+				if err := os.WriteFile(path, content, 0644); err != nil {
+					log.Fatalf("failed to write fixed result to file(%s): %+v", path, errors.WithStack(err))
+				}
+			}
+		}
+		return
+	}
 
 	originPath, err = filepath.Abs(originPath)
 	if err != nil {
